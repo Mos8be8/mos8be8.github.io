@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#11102b">
+
+  <title>Install mos8be8 App</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background-image: url("https://ik.imagekit.io/v3c8xxz93/desktop.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .install-overlay {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: rgba(5, 5, 20, 0.35);
+    }
+
+    .install-card {
+      width: 100%;
+      max-width: 420px;
+      padding: 38px 28px;
+      text-align: center;
+      color: #ffffff;
+      background: rgba(16, 15, 48, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 22px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .app-icon {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 22px;
+      margin: 0 auto 22px;
+      display: block;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .install-card h1 {
+      font-size: 29px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+
+    .description {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #e1e1f0;
+      margin-bottom: 24px;
+    }
+
+    .app-domain {
+      font-size: 14px;
+      color: #c4c3df;
+      margin-bottom: 28px;
+    }
+
+    .install-btn {
+      width: 100%;
+      min-height: 58px;
+      border: none;
+      border-radius: 12px;
+      background: #ffd43b;
+      color: #17142b;
+      font-size: 19px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .install-btn:hover {
+      background: #ffca18;
+      transform: translateY(-2px);
+    }
+
+    .install-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .install-message {
+      margin-top: 18px;
+      color: #ffffff;
+      font-size: 13px;
+      line-height: 1.6;
+      display: none;
+    }
+
+    @media (max-width: 767px) {
+      body {
+        background-image: url("https://ik.imagekit.io/v3c8xxz93/mobile.jpg");
+        background-position: center;
+      }
+
+      .install-overlay {
+        padding: 12px;
+      }
+
+      .install-card {
+        max-width: 370px;
+        padding: 32px 22px;
+      }
+
+      .app-icon {
+        width: 90px;
+        height: 90px;
+      }
+
+      .install-card h1 {
+        font-size: 25px;
+      }
+
+      .description {
+        font-size: 14px;
+      }
+
+      .install-btn {
+        min-height: 56px;
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="install-overlay">
+    <div class="install-card">
+
+      <img
+        class="app-icon"
+        src="https://ik.imagekit.io/v3c8xxz93/unnamed.webp"
+        alt="mos8be8 app icon"
+      >
+
+      <h1>Install Official App</h1>
+
+      
+
+      
+
+      <button class="install-btn" id="installBtn">
+        Install Now
+      </button>
+
+      <p class="install-message" id="installMessage"></p>
+
+    </div>
+  </main>
+
+  <script>
+    let deferredPrompt = null;
+
+    const installBtn = document.getElementById("installBtn");
+    const installMessage = document.getElementById("installMessage");
+
+    function showMessage(message) {
+      installMessage.textContent = message;
+      installMessage.style.display = "block";
+    }
+
+    // Register service worker
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js")
+          .catch(function (error) {
+            console.error("Service Worker registration failed:", error);
+          });
+      });
+    }
+
+    // Detect install prompt
+    window.addEventListener("beforeinstallprompt", function (event) {
+      event.preventDefault();
+      deferredPrompt = event;
+      installBtn.style.display = "block";
+    });
+
+    // Install button click
+    installBtn.addEventListener("click", async function () {
+
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+
+        const result = await deferredPrompt.userChoice;
+
+        if (result.outcome === "accepted") {
+          showMessage("Thank you! mos8be8 is being installed.");
+          installBtn.textContent = "Installation Started";
+          installBtn.disabled = true;
+        } else {
+          showMessage("Installation was cancelled. You can try again anytime.");
+        }
+
+        deferredPrompt = null;
+        return;
+      }
+
+      // Check if already installed
+      if (window.matchMedia("(display-mode: standalone)").matches ||
+          window.navigator.standalone === true) {
+        showMessage("mos8be8 is already installed on your device.");
+        return;
+      }
+
+      // iPhone / iPad instructions
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+      if (isIOS) {
+        showMessage(
+          "To install mos8be8, tap the Share button in Safari and select 'Add to Home Screen'."
+        );
+      } else {
+        showMessage(
+          "To install mos8be8, open your browser menu and select 'Install App' or 'Add to Home Screen'."
+        );
+      }
+    });
+
+    // Detect successful installation
+    window.addEventListener("appinstalled", function () {
+      showMessage("mos8be8 has been successfully installed!");
+      installBtn.textContent = "Installed";
+      installBtn.disabled = true;
+    });
+  </script>
+
+</body>
+</html>
